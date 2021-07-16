@@ -1,0 +1,53 @@
+---
+title: "Heritability Report for TRAITNAME"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(data.table)
+
+hert <- data.table::fread("heritability_result.tsv")
+pheno <- data.table::fread("Phenotypes/pr_Healthspan.tsv")
+traitname <- colnames(pheno)[2]
+colnames(pheno) <- c("strain", "value")
+
+```
+
+
+```{r hert}
+
+broad <- glue::glue("{round(hert$H2[1]*100, digits = 3)}% (range: {round(hert$ci_l[1]*100, digits = 3)}% to {round(hert$ci_r[1]*100, digits = 3)}%)")
+
+narrow <- glue::glue("{round(hert$H2[2]*100, digits = 3)}% (range: {round(hert$ci_l[2]*100, digits = 3)}% to {round(hert$ci_r[2]*100, digits = 3)}%)")
+
+```
+
+The broad-sense heritability is the amount of trait variance that comes from genetic differences in the assayed group of strains. Generally, it is the ratio of genetic variance to total (genetic plus environmental) variance. 
+
+- **Broad-sense heritability (H^2^)** = `r broad`
+
+The narrow-sense heritability is the amount of trait variance that comes specifically from additive genetic factors. XXX. 
+
+- **Narrow-sense heritability (h^2^)** = `r narrow`
+
+
+```{r plot}
+
+pheno %>%
+    ggplot2::ggplot(.) +
+    ggplot2::aes(x = strain, y = value) +
+    ggplot2::geom_boxplot(outlier.color = NA, fill = "grey90", alpha = 0.5, color = "grey40") +
+    ggplot2::geom_jitter(width = 0.2) +
+    ggplot2::theme_bw(14) +
+    ggplot2::coord_flip() +
+    ggplot2::theme(axis.text = element_text(color = "black"),
+                   axis.title = element_text(face = "bold", color = "black"),
+                   panel.grid = element_blank()) +
+    ggplot2::labs(y = traitname, x = "")
+
+
+```
