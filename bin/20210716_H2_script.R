@@ -1,11 +1,9 @@
 #!/usr/bin/env Rscript H2_script.R
 library(boot)
 library(lme4)
-library(dplyr)
+library(tidyverse)
 library(futile.logger)
 library(sommer)
-library(tidyr)
-library(glue)
 library(data.table)
 
 ########################
@@ -160,7 +158,7 @@ result_broad <- try(H2.calc(processed_data, boot = T, type = "broad") %>%
     dplyr::mutate(type = "broad-sense"), silent = TRUE)
 
 # if result doesn't converge, just give point estimate...
-if(is.data.frame(result_broad)) {
+if(!is.data.frame(result_broad)) {
     result_broad <- H2.calc(processed_data, boot = F, type = "broad") %>%
         dplyr::mutate(type = "broad-sense")
 }
@@ -171,7 +169,7 @@ result_narrow <- try(H2.calc(processed_data, boot = T, type = "narrow") %>%
     dplyr::mutate(type = "narrow-sense"), silent = TRUE)
 
 # if result doesn't converge, just give point estimate...
-if(is.data.frame(result_narrow)) {
+if(!is.data.frame(result_narrow)) {
     result_narrow <- H2.calc(processed_data, boot = F, type = "narrow") %>%
         dplyr::mutate(type = "narrow-sense")
 }

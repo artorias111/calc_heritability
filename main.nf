@@ -282,9 +282,9 @@ process html_report {
 
 	"""
 		cat "${workflow.projectDir}/bin/20210716_hert_report.Rmd" | \\
+		sed 's+Phenotypes/pr_TRAITNAME.tsv+${phenotype}+g' | \\
 		sed "s+TRAITNAME+${TRAIT}+g" | \\
 		sed 's+heritability_result.tsv+${hert}+g' | \\
-		sed 's+Phenotypes/pr_Healthspan.tsv+${phenotype}+g' | \\
 		sed 's+Phenotypes/strain_issues.txt+${strain_issues}+g' > hert_report_${TRAIT}.Rmd 
 	    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
 	    Rscript -e "rmarkdown::render('hert_report_${TRAIT}.Rmd')"

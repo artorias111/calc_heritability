@@ -11,9 +11,26 @@ library(tidyverse)
 library(data.table)
 
 hert <- data.table::fread("heritability_result.tsv")
-pheno <- data.table::fread("Phenotypes/pr_Healthspan.tsv")
+pheno <- data.table::fread("Phenotypes/pr_TRAITNAME.tsv")
 traitname <- colnames(pheno)[2]
 colnames(pheno) <- c("strain", "value")
+
+```
+
+## Strain Issues
+
+All strain names were converted to the corresponding isotype name, which can be looked up here: https://elegansvariation.org/strains/isotype_list. If you submitted replicate data, replicates for a given isotype were averaged to one mean value.
+
+```{r}
+
+strain_issues <- readLines("Phenotypes/strain_issues.txt")
+
+new <- grep(strain_issues, "WARNING:", value = T)
+if(length(new) == 0) {
+  print("No strain issues to report")
+} else {
+  print(new)
+}
 
 ```
 
@@ -23,6 +40,20 @@ colnames(pheno) <- c("strain", "value")
 broad <- glue::glue("{round(hert$H2[1]*100, digits = 3)}% (range: {round(hert$ci_l[1]*100, digits = 3)}% to {round(hert$ci_r[1]*100, digits = 3)}%)")
 
 narrow <- glue::glue("{round(hert$H2[2]*100, digits = 3)}% (range: {round(hert$ci_l[2]*100, digits = 3)}% to {round(hert$ci_r[2]*100, digits = 3)}%)")
+
+# adjust length of plot by number of strains:
+num <- length(unique(pheno$strain))
+if(num < 20) {
+    length = 5
+} else if(num < 50) {
+    length = 10
+} else if(num < 100) {
+    length = 15
+} else if(num < 150) {
+    length = 20
+} else {
+    length = 25
+}
 
 ```
 
@@ -35,14 +66,19 @@ The narrow-sense heritability is the amount of trait variance that comes specifi
 - **Narrow-sense heritability (h^2^)** = `r narrow`
 
 
-```{r plot}
+```{r plot, fig.height = length}
 
+pheno2 <- pheno %>%
+    dplyr::group_by(strain) %>%
+    dplyr::mutate(avg = mean(value, na.rm = T)) %>%
+    dplyr::arrange(avg)
+level_order <- unique(pheno2$strain)
 pheno %>%
     ggplot2::ggplot(.) +
-    ggplot2::aes(x = strain, y = value) +
+    ggplot2::aes(x = factor(strain, levels = rev(level_order)), y = value) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = "grey90", alpha = 0.5, color = "grey40") +
     ggplot2::geom_jitter(width = 0.2) +
-    ggplot2::theme_bw(14) +
+    ggplot2::theme_bw(12) +
     ggplot2::coord_flip() +
     ggplot2::theme(axis.text = element_text(color = "black"),
                    axis.title = element_text(face = "bold", color = "black"),
