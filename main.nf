@@ -9,14 +9,13 @@ if( !nextflow.version.matches('20.0+') ) {
 nextflow.preview.dsl=2
 
 date = new Date().format( 'yyyyMMdd' )
-vcf = "20210121"
 
 /*
 ~ ~ ~ > * Parameters
 */
 
 download_vcf = null
-params.R_libpath = "/projects/b1059/software/R_lib_3.6.0/"
+params.R_libpath = ""
 
 // VCF param
 if(params.debug) {
@@ -32,8 +31,8 @@ if(params.debug) {
         
 } else if(params.gcp) { 
     // use the data directly from google on gcp
-    vcf_file = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+    vcf_file = "gs://elegansvariation.org/releases/20210121/variation/WI.20210121.hard-filter.isotype.vcf.gz"
+    vcf_index = "gs://elegansvariation.org/releases/20210121/variation/WI.20210121.hard-filter.isotype.vcf.gz.tbi"
 
 } else if(!params.vcf) {
     // if there is no VCF date provided, pull the latest vcf from cendr.
