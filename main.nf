@@ -9,6 +9,7 @@ if( !nextflow.version.matches('20.0+') ) {
 nextflow.preview.dsl=2
 
 date = new Date().format( 'yyyyMMdd' )
+reps = 10000
 
 /*
 ~ ~ ~ > * Parameters
@@ -28,6 +29,9 @@ if(params.debug) {
     vcf_file = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz")
     vcf_index = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz.tbi")
     params.traitfile = "${workflow.projectDir}/test_data/ExampleTraitData.csv"
+
+    // lower number of reps for debug
+    reps = 100
         
 } else if(params.gcp) { 
     // use the data directly from google on gcp
@@ -85,7 +89,8 @@ workflow {
 
     // calclate heritability and generate report output
     traits_to_map 
-    	.combine(vcf_to_geno_matrix.out) | heritability
+    	.combine(vcf_to_geno_matrix.out)
+        .combine(Channel.from(reps)) | heritability
 
     //generate html report
     traits_to_map
@@ -240,7 +245,7 @@ process heritability {
 	publishDir "${params.out}/", mode: 'copy'
 
 	input:
-		tuple val(TRAIT), file(phenotype), file(geno_matrix)
+		tuple val(TRAIT), file(phenotype), file(geno_matrix), val(reps)
 
 
 	output:
@@ -250,7 +255,7 @@ process heritability {
 	"""
 		# add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/20210716_H2_script.R > H2_script.R 
-        Rscript --vanilla H2_script.R ${phenotype} ${geno_matrix}
+        Rscript --vanilla H2_script.R ${phenotype} ${geno_matrix} ${reps}
 
 	"""
 
@@ -276,7 +281,7 @@ process html_report {
 		tuple val(TRAIT), file(phenotype), file(hert), file(strain_issues)
 
 	output:
-		file("*.html")
+		tuple file("*.html"), file("h2_plot.png")
 
 
 	"""

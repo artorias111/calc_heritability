@@ -73,7 +73,7 @@ pheno2 <- pheno %>%
     dplyr::mutate(avg = mean(value, na.rm = T)) %>%
     dplyr::arrange(avg)
 level_order <- unique(pheno2$strain)
-pheno %>%
+plot = pheno %>%
     ggplot2::ggplot(.) +
     ggplot2::aes(x = factor(strain, levels = rev(level_order)), y = value) +
     ggplot2::geom_boxplot(outlier.color = NA, fill = "grey90", alpha = 0.5, color = "grey40") +
@@ -84,6 +84,10 @@ pheno %>%
                    axis.title = element_text(face = "bold", color = "black"),
                    panel.grid = element_blank()) +
     ggplot2::labs(y = traitname, x = "")
+
+print(plot)
+
+ggsave(plot, filename = "h2_plot.png")
 
 
 ```

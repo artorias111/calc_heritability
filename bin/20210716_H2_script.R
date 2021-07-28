@@ -148,29 +148,31 @@ geno_matrix = data.table::fread(args[2])
 # heritability_version = args[4]
 # hash <- readLines(args[3])
 
+num_rep <- as.numeric(args[3])
+
 
 # additive matrix - first filter by strain
 A <- sommer::A.mat(t(geno_matrix %>% dplyr::select(dplyr::one_of(processed_data$strain))))
 
 # Run H2 calculation
 result_broad <- NULL
-result_broad <- try(H2.calc(processed_data, boot = T, type = "broad") %>%
+result_broad <- try(H2.calc(processed_data, boot = T, type = "broad", reps = num_rep) %>%
     dplyr::mutate(type = "broad-sense"), silent = TRUE)
 
 # if result doesn't converge, just give point estimate...
 if(!is.data.frame(result_broad)) {
-    result_broad <- H2.calc(processed_data, boot = F, type = "broad") %>%
+    result_broad <- H2.calc(processed_data, boot = F, type = "broad", reps = num_rep) %>%
         dplyr::mutate(type = "broad-sense")
 }
 
 # run h2 calculation
 result_narrow <- NULL
-result_narrow <- try(H2.calc(processed_data, boot = T, type = "narrow") %>%
+result_narrow <- try(H2.calc(processed_data, boot = T, type = "narrow", reps = num_rep) %>%
     dplyr::mutate(type = "narrow-sense"), silent = TRUE)
 
 # if result doesn't converge, just give point estimate...
 if(!is.data.frame(result_narrow)) {
-    result_narrow <- H2.calc(processed_data, boot = F, type = "narrow") %>%
+    result_narrow <- H2.calc(processed_data, boot = F, type = "narrow", reps = num_rep) %>%
         dplyr::mutate(type = "narrow-sense")
 }
 
