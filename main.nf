@@ -4,7 +4,7 @@
 //     println "This workflow requires Nextflow version 20.0 or greater -- You are running version $nextflow.version"
 //     println "On QUEST, you can use `module load python/anaconda3.6; source activate /projects/b1059/software/conda_envs/nf20_env`"
 //     exit 1
-// } this is a test
+// }
 
 nextflow.preview.dsl=2
 
@@ -27,9 +27,9 @@ if(params.debug) {
     // debug for now with small vcf
     params.vcf = "330_TEST.vcf.gz"
 
-    vcf_file = Channel.fromPath("${binDir}/test_data/330_TEST.vcf.gz")
-    vcf_index = Channel.fromPath("${binDir}/test_data/330_TEST.vcf.gz.tbi")
-    params.traitfile = "${binDir}/test_data/ExampleTraitData.csv"
+    vcf_file = Channel.fromPath("${params.binDir}/test_data/330_TEST.vcf.gz")
+    vcf_index = Channel.fromPath("${params.binDir}/test_data/330_TEST.vcf.gz.tbi")
+    params.traitfile = "${params.binDir}/test_data/ExampleTraitData.csv"
 
     // lower number of reps for debug
     reps = 100
@@ -76,8 +76,8 @@ workflow {
 
 	// Fix strain names
     Channel.fromPath("${params.traitfile}")
-        .combine(Channel.fromPath("${binDir}/bin/strain_isotype_lookup.tsv"))
-        .combine(Channel.fromPath("${binDir}/bin/Fix_Isotype_names_bulk_h2.R")) | fix_strain_names_bulk        
+        .combine(Channel.fromPath("${params.binDir}/bin/strain_isotype_lookup.tsv"))
+        .combine(Channel.fromPath("${params.binDir}/bin/Fix_Isotype_names_bulk_h2.R")) | fix_strain_names_bulk        
 
     traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
             .flatten()
@@ -93,13 +93,13 @@ workflow {
     traits_to_map 
     	.combine(vcf_to_geno_matrix.out)
         .combine(Channel.from(reps))
-        .combine(Channel.fromPath("${binDir}/bin/20210716_H2_script.R")) | heritability
+        .combine(Channel.fromPath("${params.binDir}/bin/20210716_H2_script.R")) | heritability
 
     //generate html report
     traits_to_map
     	.join(heritability.out)
     	.combine(fix_strain_names_bulk.out.strain_issues)
-        .combine(Channel.fromPath("${binDir}/bin/20210716_hert_report.Rmd")) | html_report
+        .combine(Channel.fromPath("${params.binDir}/bin/20210716_hert_report.Rmd")) | html_report
 
 }
 
