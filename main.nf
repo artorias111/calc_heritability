@@ -11,6 +11,7 @@ nextflow.preview.dsl=2
 date = new Date().format( 'yyyyMMdd' )
 reps = 10000
 
+
 /*
 ~ ~ ~ > * Parameters
 */
@@ -26,9 +27,9 @@ if(params.debug) {
     // debug for now with small vcf
     params.vcf = "330_TEST.vcf.gz"
 
-    vcf_file = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz")
-    vcf_index = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz.tbi")
-    params.traitfile = "${workflow.projectDir}/test_data/ExampleTraitData.csv"
+    vcf_file = Channel.fromPath("${binDir}/test_data/330_TEST.vcf.gz")
+    vcf_index = Channel.fromPath("${binDir}/test_data/330_TEST.vcf.gz.tbi")
+    params.traitfile = "${binDir}/test_data/ExampleTraitData.csv"
 
     // lower number of reps for debug
     reps = 100
@@ -75,7 +76,8 @@ workflow {
 
 	// Fix strain names
     Channel.fromPath("${params.traitfile}")
-        .combine(Channel.fromPath("${workflow.projectDir}/bin/strain_isotype_lookup.tsv")) | fix_strain_names_bulk        
+        .combine(Channel.fromPath("${binDir}/bin/strain_isotype_lookup.tsv"))
+        .combine(Channel.fromPath("${binDir}/bin/Fix_Isotype_names_bulk_h2.R")) | fix_strain_names_bulk        
 
     traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
             .flatten()
@@ -90,12 +92,14 @@ workflow {
     // calclate heritability and generate report output
     traits_to_map 
     	.combine(vcf_to_geno_matrix.out)
-        .combine(Channel.from(reps)) | heritability
+        .combine(Channel.from(reps))
+        .combine(Channel.fromPath("${binDir}/bin/20210716_H2_script.R")) | heritability
 
     //generate html report
     traits_to_map
     	.join(heritability.out)
-    	.combine(fix_strain_names_bulk.out.strain_issues) | html_report
+    	.combine(fix_strain_names_bulk.out.strain_issues)
+        .combine(Channel.fromPath("${binDir}/bin/20210716_hert_report.Rmd")) | html_report
 
 }
 
@@ -155,7 +159,7 @@ process fix_strain_names_bulk {
     publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "strain_issues.txt"
 
     input:
-        tuple file(phenotypes), file(isotype_lookup)
+        tuple file(phenotypes), file(isotype_lookup), file(fix_isotype_script)
 
     output:
         path "pr_*.tsv", emit: fixed_strain_phenotypes 
@@ -164,7 +168,7 @@ process fix_strain_names_bulk {
 
     """
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_bulk_h2.R > Fix_Isotype_names_bulk.R 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${fix_isotype_script} > Fix_Isotype_names_bulk.R 
         Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} fix $isotype_lookup
     """
 
@@ -245,7 +249,7 @@ process heritability {
 	publishDir "${params.out}/", mode: 'copy'
 
 	input:
-		tuple val(TRAIT), file(phenotype), file(geno_matrix), val(reps)
+		tuple val(TRAIT), file(phenotype), file(geno_matrix), val(reps), file(h2_script)
 
 
 	output:
@@ -254,7 +258,7 @@ process heritability {
 
 	"""
 		# add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/20210716_H2_script.R > H2_script.R 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${h2_script} > H2_script.R 
         Rscript --vanilla H2_script.R ${phenotype} ${geno_matrix} ${reps}
 
 	"""
@@ -278,14 +282,14 @@ process html_report {
 	publishDir "${params.out}/", mode: 'copy'
 
 	input:
-		tuple val(TRAIT), file(phenotype), file(hert), file(strain_issues)
+		tuple val(TRAIT), file(phenotype), file(hert), file(strain_issues), file(html_report)
 
 	output:
 		tuple file("*.html"), file("h2_plot.png")
 
 
 	"""
-		cat "${workflow.projectDir}/bin/20210716_hert_report.Rmd" | \\
+		cat "${html_report}" | \\
 		sed 's+Phenotypes/pr_TRAITNAME.tsv+${phenotype}+g' | \\
 		sed "s+TRAITNAME+${TRAIT}+g" | \\
 		sed 's+heritability_result.tsv+${hert}+g' | \\
