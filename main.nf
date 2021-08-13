@@ -4,7 +4,7 @@
 //     println "This workflow requires Nextflow version 20.0 or greater -- You are running version $nextflow.version"
 //     println "On QUEST, you can use `module load python/anaconda3.6; source activate /projects/b1059/software/conda_envs/nf20_env`"
 //     exit 1
-// }
+// } this is a test
 
 nextflow.preview.dsl=2
 
