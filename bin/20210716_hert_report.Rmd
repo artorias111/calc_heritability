@@ -4,6 +4,9 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
+### Overview
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
@@ -17,7 +20,7 @@ colnames(pheno) <- c("strain", "value")
 
 ```
 
-## Strain Issues
+### Strain Issues
 
 All strain names were converted to the corresponding isotype name, which can be looked up here: https://elegansvariation.org/strains/isotype_list. If you submitted replicate data, replicates for a given isotype were averaged to one mean value.
 
@@ -57,11 +60,13 @@ if(num < 20) {
 
 ```
 
+### Heritability
+
 The broad-sense heritability is the amount of trait variance that comes from genetic differences in the assayed group of strains. Generally, it is the ratio of genetic variance to total (genetic plus environmental) variance. 
 
 - **Broad-sense heritability (H^2^)** = `r broad`
 
-The narrow-sense heritability is the amount of trait variance that comes specifically from additive genetic factors. XXX. 
+The narrow-sense heritability is the amount of trait variance that comes specifically from additive genetic factors. 
 
 - **Narrow-sense heritability (h^2^)** = `r narrow`
 
