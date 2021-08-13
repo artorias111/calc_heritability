@@ -86,7 +86,7 @@ workflow {
     // Genotype matrix
     pheno_strains = fix_strain_names_bulk.out.phenotyped_strains_to_analyze
 
-    vcf_file.spread(vcf_index)
+    vcf_file.combine(vcf_index)
             .combine(pheno_strains) | vcf_to_geno_matrix
 
     // calclate heritability and generate report output
