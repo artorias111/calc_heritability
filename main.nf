@@ -1,10 +1,10 @@
 #! usr/bin/env nextflow
 
-if( !nextflow.version.matches('20.0+') ) {
-    println "This workflow requires Nextflow version 20.0 or greater -- You are running version $nextflow.version"
-    println "On QUEST, you can use `module load python/anaconda3.6; source activate /projects/b1059/software/conda_envs/nf20_env`"
-    exit 1
-}
+// if( !nextflow.version.matches('20.0+') ) {
+//     println "This workflow requires Nextflow version 20.0 or greater -- You are running version $nextflow.version"
+//     println "On QUEST, you can use `module load python/anaconda3.6; source activate /projects/b1059/software/conda_envs/nf20_env`"
+//     exit 1
+// }
 
 nextflow.preview.dsl=2
 
