@@ -147,7 +147,7 @@ process pull_vcf {
 */
 
 /*
-THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
+THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES <-------
 */
 
 
@@ -301,9 +301,3 @@ process html_report {
 
 
 }
-
-
-
-
-
-
