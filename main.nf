@@ -5,8 +5,8 @@ nextflow.preview.dsl=2
 date = new Date().format( 'yyyyMMdd' )
 reps = 10000
 
-vcf_file=chanel.fromPath("path")
-vcf_index=channel.fromPath("path")
+vcf_file=chanel.fromPath("/projects/b1059/projects/Nicolas/c.briggsae/variant_calling/WI-20210803/variation/WI.20210803.hard-filter.vcf.gz")
+vcf_index=channel.fromPath("/projects/b1059/projects/Nicolas/c.briggsae/variant_calling/WI-20210803/variation/WI.20210803.hard-filter.vcf.gz.tbi")
 params.traitfile("heritability calc data path")
 
 
@@ -57,7 +57,7 @@ process vcf_to_geno_matrix {
         sed 's/.\\/./NA/g' > Genotype_Matrix.tsv
     """
 
-
+}
 
 
 
